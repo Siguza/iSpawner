@@ -1,4 +1,4 @@
 SpawnEdit
 =========
 
-Bukkit Plugin "SpawnEdit"
+Bukkit Plugin "iSpawner"
