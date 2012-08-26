@@ -14,7 +14,6 @@ import org.bukkit.command.CommandSender;
 
 public class Util
 {
-    public static final String LS = System.getProperty("line.separator");
     public static Logger log = Logger.getLogger("Minecraft");
     
     // These 3 methods split up strings into multiple lines so that the message doesn't get messed up by the minecraft chat.
@@ -218,12 +217,12 @@ public class Util
                     }
                     else
                     {
-                        NBTBase newnbt = createNBT(var[0], type, value);
-                        if(newnbt == null)
+                        Object newnbt = createNBT(var[0], type, value);
+                        if(!(newnbt instanceof NBTBase))
                         {
-                            return type + " and " + value + " don't match somewhere.";
+                            return (String)newnbt;
                         }
-                        map.put(var[0], newnbt);
+                        map.put(var[0], (NBTBase)newnbt);
                     }
                     set(base, "map", map);
                 }
@@ -258,18 +257,18 @@ public class Util
                         {
                             return "List index out of bounds.";
                         }
-                        NBTBase newnbt = createNBT(var[0], type, value);
-                        if(newnbt == null)
+                        Object newnbt = createNBT(var[0], type, value);
+                        if(!(newnbt instanceof NBTBase))
                         {
-                            return type + " and " + value + " don't match somewhere.";
+                            return (String)newnbt;
                         }
                         if(i >= list.size())
                         {
-                            list.add(newnbt);
+                            list.add((NBTBase)newnbt);
                         }
                         else
                         {
-                            list.set(i, newnbt);
+                            list.set(i, (NBTBase)newnbt);
                         }
                     }
                     set(base, "list", list);
@@ -284,33 +283,100 @@ public class Util
         return "";
     }
     
-    public static NBTBase createNBT(String name, String type, String value)
+    public static Object createNBT(String name, String type, String value)
     {
         try
         {
-            if(type.equals("byte"))
+            if(type.equals("bool"))
             {
-                return new NBTTagByte(name, Byte.parseByte(value));
+                byte val = 0;
+                if(value.equalsIgnoreCase("true") || value.equalsIgnoreCase("yes") || value.equalsIgnoreCase("1") || value.equalsIgnoreCase("max"))
+                {
+                    val = 1;
+                }
+                else if(!value.equalsIgnoreCase("false") && !value.equalsIgnoreCase("no") && !value.equalsIgnoreCase("0"))
+                {
+                    throw new Exception();
+                }
+                return new NBTTagByte(name, val);
             }
-            if(type.equals("short"))
+            else if(type.equals("byte"))
             {
-                return new NBTTagShort(name, Short.parseShort(value));
+                byte val;
+                if(value.equalsIgnoreCase("max"))
+                {
+                    val = Byte.MAX_VALUE;
+                }
+                else
+                {
+                    val = Byte.parseByte(value);
+                }
+                return new NBTTagByte(name, val);
             }
-            if(type.equals("int"))
+            else if(type.equals("short"))
             {
-                return new NBTTagInt(name, Integer.parseInt(value));
+                short val;
+                if(value.equalsIgnoreCase("max"))
+                {
+                    val = Short.MAX_VALUE;
+                }
+                else
+                {
+                    val = Short.parseShort(value);
+                }
+                return new NBTTagShort(name, val);
             }
-            if(type.equals("long"))
+            else if(type.equals("int"))
             {
-                return new NBTTagLong(name, Long.parseLong(value));
+                int val;
+                if(value.equalsIgnoreCase("max"))
+                {
+                    val = Integer.MAX_VALUE;
+                }
+                else
+                {
+                    val = Integer.parseInt(value);
+                }
+                return new NBTTagInt(name, val);
             }
-            if(type.equals("float"))
+            else if(type.equals("long"))
             {
-                return new NBTTagFloat(name, Float.parseFloat(value));
+                long val;
+                if(value.equalsIgnoreCase("max"))
+                {
+                    val = Long.MAX_VALUE;
+                }
+                else
+                {
+                    val = Long.parseLong(value);
+                }
+                return new NBTTagLong(name, val);
             }
-            if(type.equals("double"))
+            else if(type.equals("float"))
             {
-                return new NBTTagDouble(name, Double.parseDouble(value));
+                float val;
+                if(value.equalsIgnoreCase("max"))
+                {
+                    val = Float.MAX_VALUE;
+                }
+                else
+                {
+                    val = Float.parseFloat(value);
+                }
+                return new NBTTagFloat(name, val);
+            }
+            else if(type.equals("double"))
+            {
+                double val;
+                if(value.equalsIgnoreCase("max"))
+                {
+                    val = Double.MAX_VALUE;
+                }
+                else
+                {
+                    val = Double.parseDouble(value);
+                }
+                return new NBTTagDouble(name, val);
             }
             if(type.equals("string"))
             {
@@ -327,11 +393,9 @@ public class Util
         }
         catch(Throwable t)
         {
-            warn();
-            t.printStackTrace();
-            return null;
+            return ("Invalid value \"" + value + "\" for type \"" + type + "\".");
         }
-        return null;
+        return "Type \"" + type + "\" is invalid.";
     }
     
     public static boolean hasSuperclass(Class leBase, Class leSuper)

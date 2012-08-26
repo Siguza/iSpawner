@@ -33,7 +33,7 @@ import static net.drgnome.ispawner.Util.*;
 
 public class DerpPlugin extends JavaPlugin implements Listener
 {
-    public static final String version = "1.0.0";
+    public static final String version = "1.0.1";
     private HashMap<String, TileEntityMobSpawner> map;
     private ArrayList<String> waiting;
     private Map<String, Class> eList;
