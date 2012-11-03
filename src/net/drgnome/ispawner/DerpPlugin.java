@@ -33,7 +33,7 @@ import static net.drgnome.ispawner.Util.*;
 
 public class DerpPlugin extends JavaPlugin implements Listener
 {
-    public static final String version = "1.0.1";
+    public static final String version = "1.0.2";
     private HashMap<String, TileEntityMobSpawner> map;
     private ArrayList<String> waiting;
     private Map<String, Class> eList;
@@ -272,6 +272,7 @@ public class DerpPlugin extends JavaPlugin implements Listener
         {
             sendMessage(sender, "/edit version - Shows the current version", ChatColor.AQUA);
             sendMessage(sender, "/edit list - List all possible mobs", ChatColor.AQUA);
+            sendMessage(sender, "/edit defval - List the default values", ChatColor.AQUA);
             sendMessage(sender, "/edit start - Start editing a mob spawner when you click it", ChatColor.AQUA);
             sendMessage(sender, "/edit start [x y z] - Start editing a mob spawner", ChatColor.AQUA);
             sendMessage(sender, "/edit info - Show everything about this mob spawner", ChatColor.AQUA);
@@ -280,6 +281,9 @@ public class DerpPlugin extends JavaPlugin implements Listener
             sendMessage(sender, "/edit delay [min] [max] - Set the min and max spawning delay", ChatColor.AQUA);
             sendMessage(sender, "/edit data [path] [type] [value] - Set the mob data", ChatColor.AQUA);
             sendMessage(sender, "/edit data [path] (list/compound/-) - Set to list/compound or delete", ChatColor.AQUA);
+            sendMessage(sender, "/edit max [max] - Spawn no more creatures if [max] of them are in range", ChatColor.AQUA);
+            sendMessage(sender, "/edit range [range] - Spawn and search for creatures in this range", ChatColor.AQUA);
+            sendMessage(sender, "/edit playerrange [range] - Only spawn creatures if a player is within this range", ChatColor.AQUA);
             sendMessage(sender, "/edit end - Finish the editing session", ChatColor.AQUA);
             return true;
         }
@@ -292,6 +296,16 @@ public class DerpPlugin extends JavaPlugin implements Listener
         if(c.equals("list"))
         {
             mobList(sender);
+            return true;
+        }
+        if(c.equals("defval"))
+        {
+            sendMessage(sender, "mob: Pig", ChatColor.GREEN);
+            sendMessage(sender, "amount: 4", ChatColor.GREEN);
+            sendMessage(sender, "delay: 200 800", ChatColor.GREEN);
+            sendMessage(sender, "max: 6", ChatColor.GREEN);
+            sendMessage(sender, "range: 4", ChatColor.GREEN);
+            sendMessage(sender, "playerrange: 16", ChatColor.GREEN);
             return true;
         }
         if(!(sender instanceof CraftPlayer))
@@ -376,6 +390,9 @@ public class DerpPlugin extends JavaPlugin implements Listener
             sendMessage(sender, "Mob: " + m.mobName, ChatColor.GREEN);
             sendMessage(sender, "Amount: " + get(m, "spawnCount").toString(), ChatColor.GREEN);
             sendMessage(sender, "Delay: " + get(m, "minSpawnDelay").toString() + " - " + get(m, "maxSpawnDelay").toString(), ChatColor.GREEN);
+            sendMessage(sender, "Max: " + get(m, "maxNearbyEntities").toString(), ChatColor.GREEN);
+            sendMessage(sender, "Range: " + get(m, "spawnRange").toString(), ChatColor.GREEN);
+            sendMessage(sender, "Player range: " + get(m, "requiredPlayerRange").toString(), ChatColor.GREEN);
             for(String s : printNBT("spawnData", (NBTBase)get(m, "spawnData")))
             {
                 sendMessage(sender, s, ChatColor.GREEN);
@@ -480,6 +497,75 @@ public class DerpPlugin extends JavaPlugin implements Listener
             }
             set(m, "spawnData", base);
             sendMessage(sender, "Data set.", ChatColor.GREEN);
+        }
+        else if(c.equals("max"))
+        {
+            if(args.length < 2)
+            {
+                sendMessage(sender, "Too few arguments.", ChatColor.RED);
+                return true;
+            }
+            try
+            {
+                if(set(m, "maxNearbyEntities", Integer.parseInt(args[1])))
+                {
+                    sendMessage(sender, "Set the maximum amount.", ChatColor.GREEN);
+                }
+                else
+                {
+                    sendMessage(sender, "Couldn't set the maximum amount, sorry.", ChatColor.YELLOW);
+                }
+            }
+            catch(Throwable t)
+            {
+                sendMessage(sender, "That's not an integer.", ChatColor.RED);
+            }
+        }
+        else if(c.equals("range"))
+        {
+            if(args.length < 2)
+            {
+                sendMessage(sender, "Too few arguments.", ChatColor.RED);
+                return true;
+            }
+            try
+            {
+                if(set(m, "spawnRange", Integer.parseInt(args[1])))
+                {
+                    sendMessage(sender, "Set the spawn range.", ChatColor.GREEN);
+                }
+                else
+                {
+                    sendMessage(sender, "Couldn't set the spawn range, sorry.", ChatColor.YELLOW);
+                }
+            }
+            catch(Throwable t)
+            {
+                sendMessage(sender, "That's not an integer.", ChatColor.RED);
+            }
+        }
+        else if(c.equals("playerrange"))
+        {
+            if(args.length < 2)
+            {
+                sendMessage(sender, "Too few arguments.", ChatColor.RED);
+                return true;
+            }
+            try
+            {
+                if(set(m, "requiredPlayerRange", Integer.parseInt(args[1])))
+                {
+                    sendMessage(sender, "Set the required player range.", ChatColor.GREEN);
+                }
+                else
+                {
+                    sendMessage(sender, "Couldn't set the required player range, sorry.", ChatColor.YELLOW);
+                }
+            }
+            catch(Throwable t)
+            {
+                sendMessage(sender, "That's not an integer.", ChatColor.RED);
+            }
         }
         else
         {
