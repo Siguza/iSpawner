@@ -33,7 +33,7 @@ import static net.drgnome.ispawner.Util.*;
 
 public class DerpPlugin extends JavaPlugin implements Listener
 {
-    public static final String version = "1.0.2";
+    public static final String version = "1.0.3";
     private HashMap<String, TileEntityMobSpawner> map;
     private ArrayList<String> waiting;
     private Map<String, Class> eList;
@@ -259,317 +259,326 @@ public class DerpPlugin extends JavaPlugin implements Listener
     
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args)
     {
-        if((sender instanceof Player) && !sender.hasPermission("ispawner.use"))
+        try
         {
-            sendMessage(sender, "Sorry buddy, you're not allowed to use this command.", ChatColor.RED);
-            return true;
-        }
-        if(update)
-        {
-            sendMessage(sender, "There is an update for iSpawner available!", ChatColor.GOLD);
-        }
-        if((args.length <= 0) || (args[0].equalsIgnoreCase("help")))
-        {
-            sendMessage(sender, "/edit version - Shows the current version", ChatColor.AQUA);
-            sendMessage(sender, "/edit list - List all possible mobs", ChatColor.AQUA);
-            sendMessage(sender, "/edit defval - List the default values", ChatColor.AQUA);
-            sendMessage(sender, "/edit start - Start editing a mob spawner when you click it", ChatColor.AQUA);
-            sendMessage(sender, "/edit start [x y z] - Start editing a mob spawner", ChatColor.AQUA);
-            sendMessage(sender, "/edit info - Show everything about this mob spawner", ChatColor.AQUA);
-            sendMessage(sender, "/edit mob [name] - Set the spawned mob", ChatColor.AQUA);
-            sendMessage(sender, "/edit amount [amount] - Set the amount of spawned mobs", ChatColor.AQUA);
-            sendMessage(sender, "/edit delay [min] [max] - Set the min and max spawning delay", ChatColor.AQUA);
-            sendMessage(sender, "/edit data [path] [type] [value] - Set the mob data", ChatColor.AQUA);
-            sendMessage(sender, "/edit data [path] (list/compound/-) - Set to list/compound or delete", ChatColor.AQUA);
-            sendMessage(sender, "/edit max [max] - Spawn no more creatures if [max] of them are in range", ChatColor.AQUA);
-            sendMessage(sender, "/edit range [range] - Spawn and search for creatures in this range", ChatColor.AQUA);
-            sendMessage(sender, "/edit playerrange [range] - Only spawn creatures if a player is within this range", ChatColor.AQUA);
-            sendMessage(sender, "/edit end - Finish the editing session", ChatColor.AQUA);
-            return true;
-        }
-        String c = args[0].toLowerCase();
-        if(c.equals("version"))
-        {
-            sendMessage(sender, "iSpawner version: " + version, ChatColor.GREEN);
-            return true;
-        }
-        if(c.equals("list"))
-        {
-            mobList(sender);
-            return true;
-        }
-        if(c.equals("defval"))
-        {
-            sendMessage(sender, "mob: Pig", ChatColor.GREEN);
-            sendMessage(sender, "amount: 4", ChatColor.GREEN);
-            sendMessage(sender, "delay: 200 800", ChatColor.GREEN);
-            sendMessage(sender, "max: 6", ChatColor.GREEN);
-            sendMessage(sender, "range: 4", ChatColor.GREEN);
-            sendMessage(sender, "playerrange: 16", ChatColor.GREEN);
-            return true;
-        }
-        if(!(sender instanceof CraftPlayer))
-        {
-            sendMessage(sender, "Sorry buddy, only players can use this command.", ChatColor.RED);
-            return true;
-        }
-        String name = sender.getName();
-        if(c.equals("start"))
-        {
-            if(args.length >= 4)
+            if((sender instanceof Player) && !sender.hasPermission("ispawner.use"))
             {
-                try
-                {
-                    int x = Integer.parseInt(args[1]);
-                    int y = Integer.parseInt(args[2]);
-                    int z = Integer.parseInt(args[3]);
-                    TileEntity t = ((CraftPlayer)sender).getHandle().world.getTileEntity(x, y, z);
-                    if((t == null) || !(t instanceof TileEntityMobSpawner))
-                    {
-                        sendMessage(sender, "That's not a mob spawner.", ChatColor.RED);
-                        return true;
-                    }
-                    TileEntityMobSpawner m = (TileEntityMobSpawner)t;
-                    m.spawnDelay = Integer.MAX_VALUE;
-                    setTE(name, m);
-                    sendMessage(sender, "Editing session started.", ChatColor.GREEN);
-                    return true;
-                }
-                catch(Throwable t)
-                {
-                    sendMessage(sender, "Error parsing coordinates.", ChatColor.RED);
-                    return true;
-                }
-            }
-            if(args.length > 1)
-            {
-                sendMessage(sender, "You need to specify 3 coordinates or none.", ChatColor.RED);
+                sendMessage(sender, "Sorry buddy, you're not allowed to use this command.", ChatColor.RED);
                 return true;
             }
-            waiting.add(name);
-            sendMessage(sender, "Now click on a mob spawner.", ChatColor.GREEN);
-            return true;
-        }
-        if(!hasTE(name))
-        {
-            sendMessage(sender, "Select a mob spawner first.", ChatColor.RED);
-            return true;
-        }
-        TileEntityMobSpawner m = getTE(name);
-        if(c.equals("end"))
-        {
-            NBTTagCompound spawnData = (NBTTagCompound)get(m, "spawnData");
-            if(spawnData != null)
+            if(update)
             {
-                Entity entity = EntityTypes.createEntityByName(m.mobName, ((CraftPlayer)sender).getHandle().world);
-                NBTTagCompound nbttagcompound = new NBTTagCompound();
-                entity.c(nbttagcompound); // Derpnote
-                Iterator iterator = spawnData.c().iterator(); // Derpnote
-                while(iterator.hasNext())
-                {
-                    NBTBase nbtbase = (NBTBase)iterator.next();
-                    nbttagcompound.set(nbtbase.getName(), nbtbase.clone());
-                }
-                try
-                {
-                    entity.e(nbttagcompound);
-                }
-                catch(Throwable t)
-                {
-                    sendMessage(sender, "Error parsing entity data.", ChatColor.RED);
-                    sendMessage(sender, t.getMessage(), ChatColor.YELLOW);
-                    return true;
-                }
+                sendMessage(sender, "There is an update for iSpawner available!", ChatColor.GOLD);
             }
-            m.spawnDelay = 0;
-            setTE(name, null);
-            sendMessage(sender, "Session ended.", ChatColor.GREEN);
-        }
-        else if(c.equals("info"))
-        {
-            sendMessage(sender, "Mob: " + m.mobName, ChatColor.GREEN);
-            sendMessage(sender, "Amount: " + get(m, "spawnCount").toString(), ChatColor.GREEN);
-            sendMessage(sender, "Delay: " + get(m, "minSpawnDelay").toString() + " - " + get(m, "maxSpawnDelay").toString(), ChatColor.GREEN);
-            sendMessage(sender, "Max: " + get(m, "maxNearbyEntities").toString(), ChatColor.GREEN);
-            sendMessage(sender, "Range: " + get(m, "spawnRange").toString(), ChatColor.GREEN);
-            sendMessage(sender, "Player range: " + get(m, "requiredPlayerRange").toString(), ChatColor.GREEN);
-            for(String s : printNBT("spawnData", (NBTBase)get(m, "spawnData")))
+            if((args.length <= 0) || (args[0].equalsIgnoreCase("help")))
             {
-                sendMessage(sender, s, ChatColor.GREEN);
+                sendMessage(sender, "/edit version - Shows the current version", ChatColor.AQUA);
+                sendMessage(sender, "/edit list - List all possible mobs", ChatColor.AQUA);
+                sendMessage(sender, "/edit defval - List the default values", ChatColor.AQUA);
+                sendMessage(sender, "/edit start - Start editing a mob spawner when you click it", ChatColor.AQUA);
+                sendMessage(sender, "/edit start [x y z] - Start editing a mob spawner", ChatColor.AQUA);
+                sendMessage(sender, "/edit info - Show everything about this mob spawner", ChatColor.AQUA);
+                sendMessage(sender, "/edit mob [name] - Set the spawned mob", ChatColor.AQUA);
+                sendMessage(sender, "/edit amount [amount] - Set the amount of spawned mobs", ChatColor.AQUA);
+                sendMessage(sender, "/edit delay [min] [max] - Set the min and max spawning delay", ChatColor.AQUA);
+                sendMessage(sender, "/edit data [path] [type] [value] - Set the mob data", ChatColor.AQUA);
+                sendMessage(sender, "/edit data [path] (list/compound/-) - Set to list/compound or delete", ChatColor.AQUA);
+                sendMessage(sender, "/edit max [max] - Spawn no more creatures if [max] of them are in range", ChatColor.AQUA);
+                sendMessage(sender, "/edit range [range] - Spawn and search for creatures in this range", ChatColor.AQUA);
+                sendMessage(sender, "/edit playerrange [range] - Only spawn creatures if a player is within this range", ChatColor.AQUA);
+                sendMessage(sender, "/edit end - Finish the editing session", ChatColor.AQUA);
+                return true;
             }
-        }
-        else if(c.equals("mob"))
-        {
-            if(args.length < 2)
+            String c = args[0].toLowerCase();
+            if(c.equals("version"))
+            {
+                sendMessage(sender, "iSpawner version: " + version, ChatColor.GREEN);
+                return true;
+            }
+            if(c.equals("list"))
             {
                 mobList(sender);
                 return true;
             }
-            String mob = args[1];
-            if(!checkMob(mob))
+            if(c.equals("defval"))
             {
-                sendMessage(sender, "This mob name can't be used in a spawner.", ChatColor.RED);
+                sendMessage(sender, "mob: Pig", ChatColor.GREEN);
+                sendMessage(sender, "amount: 4", ChatColor.GREEN);
+                sendMessage(sender, "delay: 200 800", ChatColor.GREEN);
+                sendMessage(sender, "max: 6", ChatColor.GREEN);
+                sendMessage(sender, "range: 4", ChatColor.GREEN);
+                sendMessage(sender, "playerrange: 16", ChatColor.GREEN);
                 return true;
             }
-            m.mobName = mob;
-            sendMessage(sender, "Mob set.", ChatColor.GREEN);
-        }
-        else if(c.equals("amount"))
-        {
-            if(args.length < 2)
+            if(!(sender instanceof CraftPlayer))
             {
-                sendMessage(sender, "Too few arguments.", ChatColor.RED);
+                sendMessage(sender, "Sorry buddy, only players can use this command.", ChatColor.RED);
                 return true;
             }
-            try
+            String name = sender.getName();
+            if(c.equals("start"))
             {
-                if(set(m, "spawnCount", Integer.parseInt(args[1])))
+                if(args.length >= 4)
                 {
-                    sendMessage(sender, "Set the spawn amount.", ChatColor.GREEN);
+                    try
+                    {
+                        int x = Integer.parseInt(args[1]);
+                        int y = Integer.parseInt(args[2]);
+                        int z = Integer.parseInt(args[3]);
+                        TileEntity t = ((CraftPlayer)sender).getHandle().world.getTileEntity(x, y, z);
+                        if((t == null) || !(t instanceof TileEntityMobSpawner))
+                        {
+                            sendMessage(sender, "That's not a mob spawner.", ChatColor.RED);
+                            return true;
+                        }
+                        TileEntityMobSpawner m = (TileEntityMobSpawner)t;
+                        m.spawnDelay = Integer.MAX_VALUE;
+                        setTE(name, m);
+                        sendMessage(sender, "Editing session started.", ChatColor.GREEN);
+                        return true;
+                    }
+                    catch(Throwable t)
+                    {
+                        sendMessage(sender, "Error parsing coordinates.", ChatColor.RED);
+                        return true;
+                    }
                 }
-                else
+                if(args.length > 1)
                 {
-                    sendMessage(sender, "Couldn't set the spawn amount, sorry.", ChatColor.YELLOW);
-                }
-            }
-            catch(Throwable t)
-            {
-                sendMessage(sender, "That's not an integer.", ChatColor.RED);
-            }
-        }
-        else if(c.equals("delay"))
-        {
-            if(args.length < 3)
-            {
-                sendMessage(sender, "Too few arguments.", ChatColor.RED);
-                return true;
-            }
-            try
-            {
-                int min = Integer.parseInt(args[1]);
-                int max = Integer.parseInt(args[2]);
-                if(max <= min)
-                {
-                    sendMessage(sender, "Max must be bigger than min.", ChatColor.RED);
+                    sendMessage(sender, "You need to specify 3 coordinates or none.", ChatColor.RED);
                     return true;
                 }
-                if(set(m, "minSpawnDelay", min) && set(m, "maxSpawnDelay", max))
+                waiting.add(name);
+                sendMessage(sender, "Now click on a mob spawner.", ChatColor.GREEN);
+                return true;
+            }
+            if(!hasTE(name))
+            {
+                sendMessage(sender, "Select a mob spawner first.", ChatColor.RED);
+                return true;
+            }
+            TileEntityMobSpawner m = getTE(name);
+            if(c.equals("end"))
+            {
+                NBTTagCompound spawnData = (NBTTagCompound)get(m, "spawnData");
+                if(spawnData != null)
                 {
-                    sendMessage(sender, "Set the delay times.", ChatColor.GREEN);
+                    Entity entity = EntityTypes.createEntityByName(m.mobName, ((CraftPlayer)sender).getHandle().world);
+                    NBTTagCompound nbttagcompound = new NBTTagCompound();
+                    entity.c(nbttagcompound); // Derpnote
+                    Iterator iterator = spawnData.c().iterator(); // Derpnote
+                    while(iterator.hasNext())
+                    {
+                        NBTBase nbtbase = (NBTBase)iterator.next();
+                        nbttagcompound.set(nbtbase.getName(), nbtbase.clone());
+                    }
+                    try
+                    {
+                        entity.e(nbttagcompound);
+                    }
+                    catch(Throwable t)
+                    {
+                        sendMessage(sender, "Error parsing entity data.", ChatColor.RED);
+                        sendMessage(sender, t.getMessage(), ChatColor.YELLOW);
+                        t.printStackTrace();
+                        return true;
+                    }
+                }
+                m.spawnDelay = 0;
+                setTE(name, null);
+                sendMessage(sender, "Session ended.", ChatColor.GREEN);
+            }
+            else if(c.equals("info"))
+            {
+                sendMessage(sender, "Mob: " + m.mobName, ChatColor.GREEN);
+                sendMessage(sender, "Amount: " + get(m, "spawnCount").toString(), ChatColor.GREEN);
+                sendMessage(sender, "Delay: " + get(m, "minSpawnDelay").toString() + " - " + get(m, "maxSpawnDelay").toString(), ChatColor.GREEN);
+                sendMessage(sender, "Max: " + get(m, "maxNearbyEntities").toString(), ChatColor.GREEN);
+                sendMessage(sender, "Range: " + get(m, "spawnRange").toString(), ChatColor.GREEN);
+                sendMessage(sender, "Player range: " + get(m, "requiredPlayerRange").toString(), ChatColor.GREEN);
+                for(String s : printNBT("spawnData", (NBTBase)get(m, "spawnData")))
+                {
+                    sendMessage(sender, s, ChatColor.GREEN);
+                }
+            }
+            else if(c.equals("mob"))
+            {
+                if(args.length < 2)
+                {
+                    mobList(sender);
+                    return true;
+                }
+                String mob = args[1];
+                if(!checkMob(mob))
+                {
+                    sendMessage(sender, "This mob name can't be used in a spawner.", ChatColor.RED);
+                    return true;
+                }
+                m.mobName = mob;
+                sendMessage(sender, "Mob set.", ChatColor.GREEN);
+            }
+            else if(c.equals("amount"))
+            {
+                if(args.length < 2)
+                {
+                    sendMessage(sender, "Too few arguments.", ChatColor.RED);
+                    return true;
+                }
+                try
+                {
+                    if(set(m, "spawnCount", Integer.parseInt(args[1])))
+                    {
+                        sendMessage(sender, "Set the spawn amount.", ChatColor.GREEN);
+                    }
+                    else
+                    {
+                        sendMessage(sender, "Couldn't set the spawn amount, sorry.", ChatColor.YELLOW);
+                    }
+                }
+                catch(Throwable t)
+                {
+                    sendMessage(sender, "That's not an integer.", ChatColor.RED);
+                }
+            }
+            else if(c.equals("delay"))
+            {
+                if(args.length < 3)
+                {
+                    sendMessage(sender, "Too few arguments.", ChatColor.RED);
+                    return true;
+                }
+                try
+                {
+                    int min = Integer.parseInt(args[1]);
+                    int max = Integer.parseInt(args[2]);
+                    if(max <= min)
+                    {
+                        sendMessage(sender, "Max must be bigger than min.", ChatColor.RED);
+                        return true;
+                    }
+                    if(set(m, "minSpawnDelay", min) && set(m, "maxSpawnDelay", max))
+                    {
+                        sendMessage(sender, "Set the delay times.", ChatColor.GREEN);
+                    }
+                    else
+                    {
+                        sendMessage(sender, "Couldn't set the delay times, sorry.", ChatColor.YELLOW);
+                    }
+                }
+                catch(Throwable t)
+                {
+                    sendMessage(sender, "Error parsing the parameters", ChatColor.RED);
+                }
+            }
+            else if(c.equals("data"))
+            {
+                if(args.length < 4 && ((args.length < 3) || (!args[2].equals("-") && !args[2].equalsIgnoreCase("list") && !args[2].equalsIgnoreCase("compound"))))
+                {
+                    sendMessage(sender, "Too few arguments.", ChatColor.RED);
+                    return true;
+                }
+                String value = "";
+                if(!args[2].equals("-") && !args[2].equalsIgnoreCase("list") && !args[2].equalsIgnoreCase("compound"))
+                {
+                    value = args[3];
+                }
+                Object o = get(m, "spawnData");
+                NBTTagCompound base;
+                if((o != null) && (o instanceof NBTTagCompound))
+                {
+                    base = (NBTTagCompound)o;
                 }
                 else
                 {
-                    sendMessage(sender, "Couldn't set the delay times, sorry.", ChatColor.YELLOW);
+                    base = new NBTTagCompound("SpawnData");
+                }
+                String string = setNBT(base, args[1], args[2].toLowerCase(), value);
+                if(string.length() > 0)
+                {
+                    sendMessage(sender, string, ChatColor.RED);
+                    return true;
+                }
+                set(m, "spawnData", base);
+                sendMessage(sender, "Data set.", ChatColor.GREEN);
+            }
+            else if(c.equals("max"))
+            {
+                if(args.length < 2)
+                {
+                    sendMessage(sender, "Too few arguments.", ChatColor.RED);
+                    return true;
+                }
+                try
+                {
+                    if(set(m, "maxNearbyEntities", Integer.parseInt(args[1])))
+                    {
+                        sendMessage(sender, "Set the maximum amount.", ChatColor.GREEN);
+                    }
+                    else
+                    {
+                        sendMessage(sender, "Couldn't set the maximum amount, sorry.", ChatColor.YELLOW);
+                    }
+                }
+                catch(Throwable t)
+                {
+                    sendMessage(sender, "That's not an integer.", ChatColor.RED);
                 }
             }
-            catch(Throwable t)
+            else if(c.equals("range"))
             {
-                sendMessage(sender, "Error parsing the parameters", ChatColor.RED);
+                if(args.length < 2)
+                {
+                    sendMessage(sender, "Too few arguments.", ChatColor.RED);
+                    return true;
+                }
+                try
+                {
+                    if(set(m, "spawnRange", Integer.parseInt(args[1])))
+                    {
+                        sendMessage(sender, "Set the spawn range.", ChatColor.GREEN);
+                    }
+                    else
+                    {
+                        sendMessage(sender, "Couldn't set the spawn range, sorry.", ChatColor.YELLOW);
+                    }
+                }
+                catch(Throwable t)
+                {
+                    sendMessage(sender, "That's not an integer.", ChatColor.RED);
+                }
             }
-        }
-        else if(c.equals("data"))
-        {
-            if(args.length < 4 && ((args.length < 3) || (!args[2].equals("-") && !args[2].equalsIgnoreCase("list") && !args[2].equalsIgnoreCase("compound"))))
+            else if(c.equals("playerrange"))
             {
-                sendMessage(sender, "Too few arguments.", ChatColor.RED);
-                return true;
-            }
-            String value = "";
-            if(!args[2].equals("-") && !args[2].equalsIgnoreCase("list") && !args[2].equalsIgnoreCase("compound"))
-            {
-                value = args[3];
-            }
-            Object o = get(m, "spawnData");
-            NBTTagCompound base;
-            if((o != null) && (o instanceof NBTTagCompound))
-            {
-                base = (NBTTagCompound)o;
+                if(args.length < 2)
+                {
+                    sendMessage(sender, "Too few arguments.", ChatColor.RED);
+                    return true;
+                }
+                try
+                {
+                    if(set(m, "requiredPlayerRange", Integer.parseInt(args[1])))
+                    {
+                        sendMessage(sender, "Set the required player range.", ChatColor.GREEN);
+                    }
+                    else
+                    {
+                        sendMessage(sender, "Couldn't set the required player range, sorry.", ChatColor.YELLOW);
+                    }
+                }
+                catch(Throwable t)
+                {
+                    sendMessage(sender, "That's not an integer.", ChatColor.RED);
+                }
             }
             else
             {
-                base = new NBTTagCompound("SpawnData");
-            }
-            String string = setNBT(base, args[1], args[2].toLowerCase(), value);
-            if(string.length() > 0)
-            {
-                sendMessage(sender, string, ChatColor.RED);
-                return true;
-            }
-            set(m, "spawnData", base);
-            sendMessage(sender, "Data set.", ChatColor.GREEN);
-        }
-        else if(c.equals("max"))
-        {
-            if(args.length < 2)
-            {
-                sendMessage(sender, "Too few arguments.", ChatColor.RED);
-                return true;
-            }
-            try
-            {
-                if(set(m, "maxNearbyEntities", Integer.parseInt(args[1])))
-                {
-                    sendMessage(sender, "Set the maximum amount.", ChatColor.GREEN);
-                }
-                else
-                {
-                    sendMessage(sender, "Couldn't set the maximum amount, sorry.", ChatColor.YELLOW);
-                }
-            }
-            catch(Throwable t)
-            {
-                sendMessage(sender, "That's not an integer.", ChatColor.RED);
+                sendMessage(sender, "Unknown command, use /edit help", ChatColor.RED);
             }
         }
-        else if(c.equals("range"))
+        catch(Throwable ttt)
         {
-            if(args.length < 2)
-            {
-                sendMessage(sender, "Too few arguments.", ChatColor.RED);
-                return true;
-            }
-            try
-            {
-                if(set(m, "spawnRange", Integer.parseInt(args[1])))
-                {
-                    sendMessage(sender, "Set the spawn range.", ChatColor.GREEN);
-                }
-                else
-                {
-                    sendMessage(sender, "Couldn't set the spawn range, sorry.", ChatColor.YELLOW);
-                }
-            }
-            catch(Throwable t)
-            {
-                sendMessage(sender, "That's not an integer.", ChatColor.RED);
-            }
-        }
-        else if(c.equals("playerrange"))
-        {
-            if(args.length < 2)
-            {
-                sendMessage(sender, "Too few arguments.", ChatColor.RED);
-                return true;
-            }
-            try
-            {
-                if(set(m, "requiredPlayerRange", Integer.parseInt(args[1])))
-                {
-                    sendMessage(sender, "Set the required player range.", ChatColor.GREEN);
-                }
-                else
-                {
-                    sendMessage(sender, "Couldn't set the required player range, sorry.", ChatColor.YELLOW);
-                }
-            }
-            catch(Throwable t)
-            {
-                sendMessage(sender, "That's not an integer.", ChatColor.RED);
-            }
-        }
-        else
-        {
-            sendMessage(sender, "Unknown command, use /edit help", ChatColor.RED);
+            ttt.printStackTrace();
+            sendMessage(sender, "An error occured, it has been logged to the console.", ChatColor.RED);
         }
         return true;
     }

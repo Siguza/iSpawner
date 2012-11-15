@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>net.drgnome.ispawner</groupId>
 	<artifactId>iSpawner</artifactId>
-	<version>1.0.2</version>
+	<version>1.0.3</version>
 	<name>iSpawner</name>
 	<description>Bukkit Plugin "iSpawner".</description>
 	<url>http://dev.bukkit.org/server-mods/ispawner/</url>
@@ -12,6 +12,9 @@
 		<connection>scm:git:git://github.com:Siguza/iSpawner.git</connection>
 		<developerConnection>scm:git:git@github.com:Siguza/iSpawner.git</developerConnection>
 	</scm>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
 	<repositories>
 		<repository>
 			<id>bukkit-repo</id>
@@ -22,7 +25,7 @@
 		<dependency>
 			<groupId>org.bukkit</groupId>
 			<artifactId>craftbukkit</artifactId>
-			<version>1.4.2-R0.3-SNAPSHOT</version>
+			<version>1.4.4-R0.1-SNAPSHOT</version>
 			<type>jar</type>
 			<scope>compile</scope>
 		</dependency>

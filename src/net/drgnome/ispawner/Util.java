@@ -125,7 +125,7 @@ public class Util
                 string += "(double) " + ((NBTTagDouble)base).toString();
                 break;
             case 8:
-                string += "(string) " + ((NBTTagByte)base).toString();
+                string += "(string) " + ((NBTTagString)base).data;
                 break;
             case 9:
                 ArrayList<String> list = new ArrayList<String>();
