@@ -10,17 +10,17 @@ import java.util.*;
 import java.util.logging.Logger;
 import java.net.*;
 
-import net.minecraft.server.*;
+import net.minecraft.server.v1_4_6.*;
 
-import org.bukkit.craftbukkit.CraftWorld;
+import org.bukkit.craftbukkit.v1_4_6.CraftWorld;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.*;
 import org.bukkit.ChatColor;
-import org.bukkit.craftbukkit.entity.CraftPlayer;
-import org.bukkit.craftbukkit.scheduler.CraftScheduler;
+import org.bukkit.craftbukkit.v1_4_6.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_4_6.scheduler.CraftScheduler;
 import org.bukkit.entity.Player;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -29,11 +29,12 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.ServicesManager;
 import org.bukkit.configuration.file.*;
 
+import static net.drgnome.ispawner.Config.*;
 import static net.drgnome.ispawner.Util.*;
 
 public class DerpPlugin extends JavaPlugin implements Listener
 {
-    public static final String version = "1.0.3";
+    public static final String version = "1.0.4.1";
     private HashMap<String, TileEntityMobSpawner> map;
     private ArrayList<String> waiting;
     private Map<String, Class> eList;
@@ -101,6 +102,13 @@ public class DerpPlugin extends JavaPlugin implements Listener
         sendMessage(event.getPlayer(), "Editing session started.", ChatColor.GREEN);
     }
     
+    public void reloadConfig()
+    {
+        super.reloadConfig();
+        reloadConf(getConfig());
+        saveConfig();
+    }
+    
     public void onEnable()
     {
         log.info("Enabling iSpawner " + version);
@@ -108,8 +116,13 @@ public class DerpPlugin extends JavaPlugin implements Listener
         update = false;
         map = new HashMap<String, TileEntityMobSpawner>();
         waiting = new ArrayList<String>();
+        reloadConf(getConfig());
+        saveConfig();
         getServer().getPluginManager().registerEvents(this, this);
-        getServer().getScheduler().scheduleSyncRepeatingTask(this, new DerpThread(this), 0L, 1L);
+        if(getConfigString("check-update").equalsIgnoreCase("true"))
+        {
+            getServer().getScheduler().scheduleSyncRepeatingTask(this, new DerpThread(this), 0L, 1L);
+        }
     }
 
     public void onDisable()
@@ -478,7 +491,15 @@ public class DerpPlugin extends JavaPlugin implements Listener
                     return true;
                 }
                 String value = "";
-                if(!args[2].equals("-") && !args[2].equalsIgnoreCase("list") && !args[2].equalsIgnoreCase("compound"))
+                if(args[2].equalsIgnoreCase("string"))
+                {
+                    value = args[3];
+                    for(int i = 4; i < args.length; i++)
+                    {
+                        value += " " + args[i];
+                    }
+                }
+                else if(!args[2].equals("-") && !args[2].equalsIgnoreCase("list") && !args[2].equalsIgnoreCase("compound"))
                 {
                     value = args[3];
                 }
