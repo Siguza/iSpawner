@@ -10,17 +10,17 @@ import java.util.*;
 import java.util.logging.Logger;
 import java.net.*;
 
-import net.minecraft.server.v1_4_6.*;
+import net.minecraft.server.v#MC_VERSION#.*;
 
-import org.bukkit.craftbukkit.v1_4_6.CraftWorld;
+import org.bukkit.craftbukkit.v#MC_VERSION#.CraftWorld;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.*;
 import org.bukkit.ChatColor;
-import org.bukkit.craftbukkit.v1_4_6.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_4_6.scheduler.CraftScheduler;
+import org.bukkit.craftbukkit.v#MC_VERSION#.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v#MC_VERSION#.scheduler.CraftScheduler;
 import org.bukkit.entity.Player;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -34,7 +34,7 @@ import static net.drgnome.ispawner.Util.*;
 
 public class DerpPlugin extends JavaPlugin implements Listener
 {
-    public static final String version = "1.0.4.1";
+    public static final String version = "#VERSION#";
     private HashMap<String, TileEntityMobSpawner> map;
     private ArrayList<String> waiting;
     private Map<String, Class> eList;
@@ -134,7 +134,7 @@ public class DerpPlugin extends JavaPlugin implements Listener
             {
                 continue;
             }
-            NBTTagCompound spawnData = (NBTTagCompound)get(m, "spawnData");
+            NBTTagCompound spawnData = getSpawnData(m);
             if(spawnData != null)
             {
                 World world = null;
@@ -373,7 +373,7 @@ public class DerpPlugin extends JavaPlugin implements Listener
             TileEntityMobSpawner m = getTE(name);
             if(c.equals("end"))
             {
-                NBTTagCompound spawnData = (NBTTagCompound)get(m, "spawnData");
+                NBTTagCompound spawnData = getSpawnData(m);
                 if(spawnData != null)
                 {
                     Entity entity = EntityTypes.createEntityByName(m.mobName, ((CraftPlayer)sender).getHandle().world);
@@ -409,7 +409,7 @@ public class DerpPlugin extends JavaPlugin implements Listener
                 sendMessage(sender, "Max: " + get(m, "maxNearbyEntities").toString(), ChatColor.GREEN);
                 sendMessage(sender, "Range: " + get(m, "spawnRange").toString(), ChatColor.GREEN);
                 sendMessage(sender, "Player range: " + get(m, "requiredPlayerRange").toString(), ChatColor.GREEN);
-                for(String s : printNBT("spawnData", (NBTBase)get(m, "spawnData")))
+                for(String s : printNBT("spawnData", getSpawnData(m)))
                 {
                     sendMessage(sender, s, ChatColor.GREEN);
                 }
@@ -503,15 +503,11 @@ public class DerpPlugin extends JavaPlugin implements Listener
                 {
                     value = args[3];
                 }
-                Object o = get(m, "spawnData");
-                NBTTagCompound base;
-                if((o != null) && (o instanceof NBTTagCompound))
+                NBTTagCompound base = getSpawnData(m);
+                if(base == null)
                 {
-                    base = (NBTTagCompound)o;
-                }
-                else
-                {
-                    base = new NBTTagCompound("SpawnData");
+                    sendMessage(sender, "An error occured, see the console.", ChatColor.RED);
+                    return true;
                 }
                 String string = setNBT(base, args[1], args[2].toLowerCase(), value);
                 if(string.length() > 0)
@@ -519,7 +515,6 @@ public class DerpPlugin extends JavaPlugin implements Listener
                     sendMessage(sender, string, ChatColor.RED);
                     return true;
                 }
-                set(m, "spawnData", base);
                 sendMessage(sender, "Data set.", ChatColor.GREEN);
             }
             else if(c.equals("max"))
@@ -602,6 +597,32 @@ public class DerpPlugin extends JavaPlugin implements Listener
             sendMessage(sender, "An error occured, it has been logged to the console.", ChatColor.RED);
         }
         return true;
+    }
+    
+    private NBTTagCompound getSpawnData(TileEntityMobSpawner m)
+    {
+        try
+        {
+            Field field1 = TileEntityMobSpawner.class.getDeclaredField("spawnData");
+            field1.setAccessible(true);
+            Object data = field1.get(m);
+            if(data == null)
+            {
+                Constructor c = Class.forName("net.minecraft.server.v#MC_VERSION#.TileEntityMobSpawnerData").getConstructor(new Class[]{TileEntityMobSpawner.class, NBTTagCompound.class, String.class});
+                c.setAccessible(true);
+                data = c.newInstance(m, new NBTTagCompound(), m.mobName);
+                field1.set(m, data);
+            }
+            Field field2 = Class.forName("net.minecraft.server.v#MC_VERSION#.TileEntityMobSpawnerData").getDeclaredField("b"); // Derpnote
+            field2.setAccessible(true);
+            return (NBTTagCompound)field2.get(data);
+        }
+        catch(Throwable t)
+        {
+            System.out.println("[iSpawner] An error occured:");
+            t.printStackTrace();
+            return null;
+        }
     }
     
     private void mobList(CommandSender sender)
