@@ -4,7 +4,7 @@
 
 package net.drgnome.ispawner;
 
-import net.minecraft.server.v1_4_6.*;
+import net.minecraft.server.v#MC_VERSION#.*;
 
 import java.lang.reflect.*;
 import java.util.*;
