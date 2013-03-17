@@ -4,11 +4,9 @@
 
 package net.drgnome.ispawner;
 
-import java.io.*;
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.logging.Logger;
-import java.net.*;
 
 import net.minecraft.server.v#MC_VERSION#.*;
 
@@ -32,14 +30,13 @@ import org.bukkit.configuration.file.*;
 import static net.drgnome.ispawner.Config.*;
 import static net.drgnome.ispawner.Util.*;
 
-public class DerpPlugin extends JavaPlugin implements Listener
+public class DerpPlugin extends JavaPlugin implements Listener, Runnable
 {
-    public static final String version = "#VERSION#";
-    private HashMap<String, TileEntityMobSpawner> map;
-    private ArrayList<String> waiting;
+    public static final String _version = "#VERSION#";
+    private HashMap<String, MobSpawnerAbstract> map = new HashMap<String, MobSpawnerAbstract>();
+    private ArrayList<String> waiting = new ArrayList<String>();
     private Map<String, Class> eList;
-    private int upTick;
-    private boolean update;
+    private boolean _update = false;
     
     public DerpPlugin()
     {
@@ -62,16 +59,10 @@ public class DerpPlugin extends JavaPlugin implements Listener
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void handleLogin(PlayerLoginEvent event)
     {
-        if((!update) || (event == null) || (event.getPlayer() == null))
+        if(event.getPlayer().hasPermission("ispawner.use"))
         {
-            return;
+            sendMessage(event.getPlayer(), "There is an update for iSpawner available!", ChatColor.GOLD);
         }
-        Player player = event.getPlayer();
-        if(!player.hasPermission("ispawner.use"))
-        {
-            return;
-        }
-        sendMessage(player, "There is an update for iSpawner available!", ChatColor.GOLD);
     }
     
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -96,7 +87,8 @@ public class DerpPlugin extends JavaPlugin implements Listener
             sendMessage(event.getPlayer(), "That's not a mob spawner.", ChatColor.RED);
             return;
         }
-        TileEntityMobSpawner m = (TileEntityMobSpawner)t;
+        TileEntityMobSpawner mob = (TileEntityMobSpawner)t;
+        MobSpawnerAbstract m = (MobSpawnerAbstract)get(mob, "a");
         m.spawnDelay = Integer.MAX_VALUE;
         setTE(event.getPlayer().getName(), m);
         sendMessage(event.getPlayer(), "Editing session started.", ChatColor.GREEN);
@@ -111,24 +103,20 @@ public class DerpPlugin extends JavaPlugin implements Listener
     
     public void onEnable()
     {
-        log.info("Enabling iSpawner " + version);
-        upTick = 60 * 60 * 20;
-        update = false;
-        map = new HashMap<String, TileEntityMobSpawner>();
-        waiting = new ArrayList<String>();
+        log.info("Enabling iSpawner " + _version);
         reloadConf(getConfig());
         saveConfig();
         getServer().getPluginManager().registerEvents(this, this);
         if(getConfigString("check-update").equalsIgnoreCase("true"))
         {
-            getServer().getScheduler().scheduleSyncRepeatingTask(this, new DerpThread(this), 0L, 1L);
+            getServer().getScheduler().scheduleSyncRepeatingTask(this, this, 0L, 72000L);
         }
     }
 
     public void onDisable()
     {
         getServer().getScheduler().cancelTasks(this);
-        for(TileEntityMobSpawner m : map.values().toArray(new TileEntityMobSpawner[0]))
+        for(MobSpawnerAbstract m : map.values())
         {
             if(m == null)
             {
@@ -148,7 +136,7 @@ public class DerpPlugin extends JavaPlugin implements Listener
                 {
                     continue;
                 }
-                Entity entity = EntityTypes.createEntityByName(m.mobName, world);
+                Entity entity = EntityTypes.createEntityByName(m.getMobName(), world);
                 NBTTagCompound nbttagcompound = new NBTTagCompound();
                 entity.c(nbttagcompound); // Derpnote
                 Iterator iterator = spawnData.c().iterator(); // Derpnote
@@ -168,94 +156,12 @@ public class DerpPlugin extends JavaPlugin implements Listener
             }
             m.spawnDelay = 0;
         }
-        map = new HashMap<String, TileEntityMobSpawner>();
+        map = new HashMap<String, MobSpawnerAbstract>();
         waiting = new ArrayList<String>();
-        log.info("Disabling iSpawner " + version);
+        log.info("Disabling iSpawner " + _version);
     }
     
-    public synchronized void tick()
-    {
-        if(!update)
-        {
-            upTick++;
-            if(upTick >= 60 * 60 * 20)
-            {
-                checkForUpdate();
-                upTick = 0;
-            }
-        }
-    }
-    
-    private void checkForUpdate()
-    {
-        try
-        {
-            HttpURLConnection con = (HttpURLConnection)(new URL("http://dev.drgnome.net/version.php?t=ispawner")).openConnection();            
-            con.setRequestMethod("GET");
-            con.setRequestProperty("User-Agent", "Mozilla/4.0 (compatible; JVM)");                        
-            con.setRequestProperty("Pragma", "no-cache");
-            con.connect();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(con.getInputStream()));
-            String line = null;
-            StringBuilder stringb = new StringBuilder();
-            if((line = reader.readLine()) != null)
-            {
-                stringb.append(line);
-            }
-            String vdigits[] = this.version.toLowerCase().split("\\.");
-            String cdigits[] = stringb.toString().toLowerCase().split("\\.");
-            int max = vdigits.length > cdigits.length ? cdigits.length : vdigits.length;
-            int a = 0;
-            int b = 0;
-            for(int i = 0; i < max; i++)
-            {
-                try
-                {
-                    a = Integer.parseInt(cdigits[i]);
-                }
-                catch(Throwable t1)
-                {
-                    char c[] = cdigits[i].toCharArray();
-                    for(int j = 0; j < c.length; j++)
-                    {
-                        a += (c[j] << ((c.length - (j + 1)) * 8));
-                    }
-                }
-                try
-                {
-                    b = Integer.parseInt(vdigits[i]);
-                }
-                catch(Throwable t1)
-                {
-                    char c[] = vdigits[i].toCharArray();
-                    for(int j = 0; j < c.length; j++)
-                    {
-                        b += (c[j] << ((c.length - (j + 1)) * 8));
-                    }
-                }
-                if(a > b)
-                {
-                    update = true;
-                    break;
-                }
-                else if(a < b)
-                {
-                    update = false;
-                    break;
-                }
-                else if((i == max - 1) && (cdigits.length > vdigits.length))
-                {
-                    update = true;
-                    break;
-                }
-            }
-        }
-        catch(Throwable t)
-        {
-        }
-    }
-    
-    private void setTE(String name, TileEntityMobSpawner te)
+    private void setTE(String name, MobSpawnerAbstract te)
     {
         map.put(name.toLowerCase(), te);
     }
@@ -265,7 +171,7 @@ public class DerpPlugin extends JavaPlugin implements Listener
         return map.get(name.toLowerCase()) != null;
     }
     
-    private TileEntityMobSpawner getTE(String name)
+    private MobSpawnerAbstract getTE(String name)
     {
         return map.get(name.toLowerCase());
     }
@@ -279,19 +185,21 @@ public class DerpPlugin extends JavaPlugin implements Listener
                 sendMessage(sender, "Sorry buddy, you're not allowed to use this command.", ChatColor.RED);
                 return true;
             }
-            if(update)
+            if(_update)
             {
                 sendMessage(sender, "There is an update for iSpawner available!", ChatColor.GOLD);
             }
             if((args.length <= 0) || (args[0].equalsIgnoreCase("help")))
             {
                 sendMessage(sender, "/edit version - Shows the current version", ChatColor.AQUA);
-                sendMessage(sender, "/edit list - List all possible mobs", ChatColor.AQUA);
+                sendMessage(sender, "/edit list - List the normally possible mobs", ChatColor.AQUA);
+                sendMessage(sender, "/edit list all - List ALL possible mobs", ChatColor.AQUA);
                 sendMessage(sender, "/edit defval - List the default values", ChatColor.AQUA);
                 sendMessage(sender, "/edit start - Start editing a mob spawner when you click it", ChatColor.AQUA);
                 sendMessage(sender, "/edit start [x y z] - Start editing a mob spawner", ChatColor.AQUA);
                 sendMessage(sender, "/edit info - Show everything about this mob spawner", ChatColor.AQUA);
                 sendMessage(sender, "/edit mob [name] - Set the spawned mob", ChatColor.AQUA);
+                sendMessage(sender, "/edit mob -f [name] - Force setting the spawned mob", ChatColor.AQUA);
                 sendMessage(sender, "/edit amount [amount] - Set the amount of spawned mobs", ChatColor.AQUA);
                 sendMessage(sender, "/edit delay [min] [max] - Set the min and max spawning delay", ChatColor.AQUA);
                 sendMessage(sender, "/edit data [path] [type] [value] - Set the mob data", ChatColor.AQUA);
@@ -305,12 +213,12 @@ public class DerpPlugin extends JavaPlugin implements Listener
             String c = args[0].toLowerCase();
             if(c.equals("version"))
             {
-                sendMessage(sender, "iSpawner version: " + version, ChatColor.GREEN);
+                sendMessage(sender, "iSpawner version: " + _version, ChatColor.GREEN);
                 return true;
             }
             if(c.equals("list"))
             {
-                mobList(sender);
+                mobList(sender, (args.length >= 2) && args[1].equalsIgnoreCase("all"));
                 return true;
             }
             if(c.equals("defval"))
@@ -344,7 +252,8 @@ public class DerpPlugin extends JavaPlugin implements Listener
                             sendMessage(sender, "That's not a mob spawner.", ChatColor.RED);
                             return true;
                         }
-                        TileEntityMobSpawner m = (TileEntityMobSpawner)t;
+                        TileEntityMobSpawner mob = (TileEntityMobSpawner)t;
+                        MobSpawnerAbstract m = (MobSpawnerAbstract)get(mob, "a");
                         m.spawnDelay = Integer.MAX_VALUE;
                         setTE(name, m);
                         sendMessage(sender, "Editing session started.", ChatColor.GREEN);
@@ -370,13 +279,13 @@ public class DerpPlugin extends JavaPlugin implements Listener
                 sendMessage(sender, "Select a mob spawner first.", ChatColor.RED);
                 return true;
             }
-            TileEntityMobSpawner m = getTE(name);
+            MobSpawnerAbstract m = getTE(name);
             if(c.equals("end"))
             {
                 NBTTagCompound spawnData = getSpawnData(m);
                 if(spawnData != null)
                 {
-                    Entity entity = EntityTypes.createEntityByName(m.mobName, ((CraftPlayer)sender).getHandle().world);
+                    Entity entity = EntityTypes.createEntityByName(m.getMobName(), ((CraftPlayer)sender).getHandle().world);
                     NBTTagCompound nbttagcompound = new NBTTagCompound();
                     entity.c(nbttagcompound); // Derpnote
                     Iterator iterator = spawnData.c().iterator(); // Derpnote
@@ -403,12 +312,12 @@ public class DerpPlugin extends JavaPlugin implements Listener
             }
             else if(c.equals("info"))
             {
-                sendMessage(sender, "Mob: " + m.mobName, ChatColor.GREEN);
-                sendMessage(sender, "Amount: " + get(m, "spawnCount").toString(), ChatColor.GREEN);
-                sendMessage(sender, "Delay: " + get(m, "minSpawnDelay").toString() + " - " + get(m, "maxSpawnDelay").toString(), ChatColor.GREEN);
-                sendMessage(sender, "Max: " + get(m, "maxNearbyEntities").toString(), ChatColor.GREEN);
-                sendMessage(sender, "Range: " + get(m, "spawnRange").toString(), ChatColor.GREEN);
-                sendMessage(sender, "Player range: " + get(m, "requiredPlayerRange").toString(), ChatColor.GREEN);
+                sendMessage(sender, "Mob: " + m.getMobName(), ChatColor.GREEN);
+                sendMessage(sender, "Amount: " + get(MobSpawnerAbstract.class, m, "spawnCount").toString(), ChatColor.GREEN);
+                sendMessage(sender, "Delay: " + get(MobSpawnerAbstract.class, m, "minSpawnDelay").toString() + " - " + get(MobSpawnerAbstract.class, m, "maxSpawnDelay").toString(), ChatColor.GREEN);
+                sendMessage(sender, "Max: " + get(MobSpawnerAbstract.class, m, "maxNearbyEntities").toString(), ChatColor.GREEN);
+                sendMessage(sender, "Range: " + get(MobSpawnerAbstract.class, m, "spawnRange").toString(), ChatColor.GREEN);
+                sendMessage(sender, "Player range: " + get(MobSpawnerAbstract.class, m, "requiredPlayerRange").toString(), ChatColor.GREEN);
                 for(String s : printNBT("spawnData", getSpawnData(m)))
                 {
                     sendMessage(sender, s, ChatColor.GREEN);
@@ -416,18 +325,37 @@ public class DerpPlugin extends JavaPlugin implements Listener
             }
             else if(c.equals("mob"))
             {
+                String mob;
                 if(args.length < 2)
                 {
                     mobList(sender);
                     return true;
                 }
-                String mob = args[1];
-                if(!checkMob(mob))
+                if(args[1].equalsIgnoreCase("-f"))
                 {
-                    sendMessage(sender, "This mob name can't be used in a spawner.", ChatColor.RED);
-                    return true;
+                    if(args.length < 3)
+                    {
+                        mobList(sender, true);
+                        return true;
+                    }
+                    mob = args[2];
+                    if(!checkMob(mob, true))
+                    {
+                        sendMessage(sender, "This mob does technically not exist.", ChatColor.RED);
+                        return true;
+                    }
                 }
-                m.mobName = mob;
+                else
+                {
+                    mob = args[1];
+                    if(!checkMob(mob))
+                    {
+                        sendMessage(sender, "This mob name can't be used in a spawner.", ChatColor.RED);
+                        return true;
+                    }
+                }
+                m.a(mob); // Derpnote
+                set(getMobData(m), "c", mob); // Derpnote
                 sendMessage(sender, "Mob set.", ChatColor.GREEN);
             }
             else if(c.equals("amount"))
@@ -439,7 +367,7 @@ public class DerpPlugin extends JavaPlugin implements Listener
                 }
                 try
                 {
-                    if(set(m, "spawnCount", Integer.parseInt(args[1])))
+                    if(set(MobSpawnerAbstract.class, m, "spawnCount", Integer.parseInt(args[1])))
                     {
                         sendMessage(sender, "Set the spawn amount.", ChatColor.GREEN);
                     }
@@ -469,7 +397,7 @@ public class DerpPlugin extends JavaPlugin implements Listener
                         sendMessage(sender, "Max must be bigger than min.", ChatColor.RED);
                         return true;
                     }
-                    if(set(m, "minSpawnDelay", min) && set(m, "maxSpawnDelay", max))
+                    if(set(MobSpawnerAbstract.class, m, "minSpawnDelay", min) && set(MobSpawnerAbstract.class, m, "maxSpawnDelay", max))
                     {
                         sendMessage(sender, "Set the delay times.", ChatColor.GREEN);
                     }
@@ -526,7 +454,7 @@ public class DerpPlugin extends JavaPlugin implements Listener
                 }
                 try
                 {
-                    if(set(m, "maxNearbyEntities", Integer.parseInt(args[1])))
+                    if(set(MobSpawnerAbstract.class, m, "maxNearbyEntities", Integer.parseInt(args[1])))
                     {
                         sendMessage(sender, "Set the maximum amount.", ChatColor.GREEN);
                     }
@@ -549,7 +477,7 @@ public class DerpPlugin extends JavaPlugin implements Listener
                 }
                 try
                 {
-                    if(set(m, "spawnRange", Integer.parseInt(args[1])))
+                    if(set(MobSpawnerAbstract.class, m, "spawnRange", Integer.parseInt(args[1])))
                     {
                         sendMessage(sender, "Set the spawn range.", ChatColor.GREEN);
                     }
@@ -572,7 +500,7 @@ public class DerpPlugin extends JavaPlugin implements Listener
                 }
                 try
                 {
-                    if(set(m, "requiredPlayerRange", Integer.parseInt(args[1])))
+                    if(set(MobSpawnerAbstract.class, m, "requiredPlayerRange", Integer.parseInt(args[1])))
                     {
                         sendMessage(sender, "Set the required player range.", ChatColor.GREEN);
                     }
@@ -599,39 +527,34 @@ public class DerpPlugin extends JavaPlugin implements Listener
         return true;
     }
     
-    private NBTTagCompound getSpawnData(TileEntityMobSpawner m)
+    private TileEntityMobSpawnerData getMobData(MobSpawnerAbstract m)
     {
-        try
+        TileEntityMobSpawnerData data = m.i(); // Derpnote
+        if(data == null)
         {
-            Field field1 = TileEntityMobSpawner.class.getDeclaredField("spawnData");
-            field1.setAccessible(true);
-            Object data = field1.get(m);
-            if(data == null)
-            {
-                Constructor c = Class.forName("net.minecraft.server.v#MC_VERSION#.TileEntityMobSpawnerData").getConstructor(new Class[]{TileEntityMobSpawner.class, NBTTagCompound.class, String.class});
-                c.setAccessible(true);
-                data = c.newInstance(m, new NBTTagCompound(), m.mobName);
-                field1.set(m, data);
-            }
-            Field field2 = Class.forName("net.minecraft.server.v#MC_VERSION#.TileEntityMobSpawnerData").getDeclaredField("b"); // Derpnote
-            field2.setAccessible(true);
-            return (NBTTagCompound)field2.get(data);
+            data = new TileEntityMobSpawnerData(m, new NBTTagCompound(), m.getMobName());
+            m.a(data); // Derpnote
         }
-        catch(Throwable t)
-        {
-            System.out.println("[iSpawner] An error occured:");
-            t.printStackTrace();
-            return null;
-        }
+        return data;
+    }
+    
+    private NBTTagCompound getSpawnData(MobSpawnerAbstract m)
+    {
+        return getMobData(m).b; // Derpnote;
     }
     
     private void mobList(CommandSender sender)
     {
-        sendMessage(sender, "Possible mobs are:", ChatColor.AQUA);
+        mobList(sender, false);
+    }
+    
+    private void mobList(CommandSender sender, boolean all)
+    {
+        sendMessage(sender, "Possible mobs are:", ChatColor.GREEN);
         String string = "";
         for(String mob : eList.keySet().toArray(new String[0]))
         {
-            if(checkMob(mob))
+            if(checkMob(mob, all))
             {
                 string += mob + ", ";
             }
@@ -641,11 +564,30 @@ public class DerpPlugin extends JavaPlugin implements Listener
     
     private boolean checkMob(String mob)
     {
+        return checkMob(mob, false);
+    }
+    
+    private boolean checkMob(String mob, boolean all)
+    {
         Class c = eList.get(mob);
         if(c == null)
         {
             return false;
         }
-        return ((c.getModifiers() & 1024) == 0) && hasSuperclass(c, EntityLiving.class);
+        return ((c.getModifiers() & 1024) == 0) && (all || hasSuperclass(c, EntityLiving.class));
+    }
+    
+    public void run()
+    {
+        if(checkUpdate())
+        {
+            getServer().getScheduler().cancelTasks(this);
+        }
+    }
+    
+    public boolean checkUpdate()
+    {
+        _update = hasUpdate("ispawner", _version);
+        return _update;
     }
 }

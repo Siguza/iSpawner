@@ -6,6 +6,8 @@ package net.drgnome.ispawner;
 
 import net.minecraft.server.v#MC_VERSION#.*;
 
+import java.io.*;
+import java.net.*;
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.logging.Logger;
@@ -66,9 +68,14 @@ public class Util
     
     public static Object get(Object o, String s)
     {
+        return get(o.getClass(), o, s);
+    }
+    
+    public static Object get(Class clazz, Object o, String s)
+    {
         try
         {
-            Field field = o.getClass().getDeclaredField(s);
+            Field field = clazz.getDeclaredField(s);
             field.setAccessible(true);
             return field.get(o);
         }
@@ -82,9 +89,14 @@ public class Util
     
     public static boolean set(Object o, String s, Object value)
     {
+        return set(o.getClass(), o, s, value);
+    }
+    
+    public static boolean set(Class clazz, Object o, String s, Object value)
+    {
         try
         {
-            Field field = o.getClass().getDeclaredField(s);
+            Field field = clazz.getDeclaredField(s);
             field.setAccessible(true);
             field.set(o, value);
             return true;
@@ -409,5 +421,72 @@ public class Util
             return false;
         }
         return hasSuperclass(leBase.getSuperclass(), leSuper);
+    }
+    
+    public static boolean hasUpdate(String name, String version)
+    {
+        try
+        {
+            HttpURLConnection con = (HttpURLConnection)(new URL("http://dev.drgnome.net/version.php?t=" + name)).openConnection();            
+            con.setRequestMethod("GET");
+            con.setRequestProperty("User-Agent", "Mozilla/4.0 (compatible; JVM)");                        
+            con.setRequestProperty("Pragma", "no-cache");
+            con.connect();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(con.getInputStream()));
+            String line = null;
+            StringBuilder stringb = new StringBuilder();
+            if((line = reader.readLine()) != null)
+            {
+                stringb.append(line);
+            }
+            String vdigits[] = version.toLowerCase().split("\\.");
+            String cdigits[] = stringb.toString().toLowerCase().split("\\.");
+            int max = vdigits.length > cdigits.length ? cdigits.length : vdigits.length;
+            int a = 0;
+            int b = 0;
+            for(int i = 0; i < max; i++)
+            {
+                try
+                {
+                    a = Integer.parseInt(cdigits[i]);
+                }
+                catch(Throwable t1)
+                {
+                    char c[] = cdigits[i].toCharArray();
+                    for(int j = 0; j < c.length; j++)
+                    {
+                        a += (c[j] << ((c.length - (j + 1)) * 8));
+                    }
+                }
+                try
+                {
+                    b = Integer.parseInt(vdigits[i]);
+                }
+                catch(Throwable t1)
+                {
+                    char c[] = vdigits[i].toCharArray();
+                    for(int j = 0; j < c.length; j++)
+                    {
+                        b += (c[j] << ((c.length - (j + 1)) * 8));
+                    }
+                }
+                if(a > b)
+                {
+                    return true;
+                }
+                else if(a < b)
+                {
+                    return false;
+                }
+                else if((i == max - 1) && (cdigits.length > vdigits.length))
+                {
+                    return true;
+                }
+            }
+        }
+        catch(Throwable t)
+        {
+        }
+        return false;
     }
 }

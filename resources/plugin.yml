@@ -1,6 +1,6 @@
 name: iSpawner
 main: net.drgnome.ispawner.DerpPlugin
-version: 1.0.4.1
+version: #VERSION#
 author: Siguza
 commands:
     edit:
