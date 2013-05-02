@@ -43,7 +43,7 @@ public class DerpPlugin extends JavaPlugin implements Listener, Runnable
         super();
         try
         {
-            Field field = EntityTypes.class.getDeclaredField("b"); // Derpnote
+            Field field = EntityTypes.class.getDeclaredField("#FIELD_ENTITYTYPES_1#"); // Derpnote
             field.setAccessible(true);
             Object o = field.get(null);
             eList = (Map<String, Class>)o;
@@ -138,8 +138,8 @@ public class DerpPlugin extends JavaPlugin implements Listener, Runnable
                 }
                 Entity entity = EntityTypes.createEntityByName(m.getMobName(), world);
                 NBTTagCompound nbttagcompound = new NBTTagCompound();
-                entity.c(nbttagcompound); // Derpnote
-                Iterator iterator = spawnData.c().iterator(); // Derpnote
+                entity.#FIELD_ENTITY_1#(nbttagcompound); // Derpnote
+                Iterator iterator = spawnData.#FIELD_NBTTAGCOMPOUND_1#().iterator(); // Derpnote
                 while(iterator.hasNext())
                 {
                     NBTBase nbtbase = (NBTBase)iterator.next();
@@ -147,7 +147,7 @@ public class DerpPlugin extends JavaPlugin implements Listener, Runnable
                 }
                 try
                 {
-                    entity.e(nbttagcompound);
+                    entity.#FIELD_ENTITY_2#(nbttagcompound); // Derpnote
                 }
                 catch(Throwable t)
                 {
@@ -287,8 +287,8 @@ public class DerpPlugin extends JavaPlugin implements Listener, Runnable
                 {
                     Entity entity = EntityTypes.createEntityByName(m.getMobName(), ((CraftPlayer)sender).getHandle().world);
                     NBTTagCompound nbttagcompound = new NBTTagCompound();
-                    entity.c(nbttagcompound); // Derpnote
-                    Iterator iterator = spawnData.c().iterator(); // Derpnote
+                    entity.#FIELD_ENTITY_1#(nbttagcompound); // Derpnote
+                    Iterator iterator = spawnData.#FIELD_NBTTAGCOMPOUND_1#().iterator(); // Derpnote
                     while(iterator.hasNext())
                     {
                         NBTBase nbtbase = (NBTBase)iterator.next();
@@ -296,7 +296,7 @@ public class DerpPlugin extends JavaPlugin implements Listener, Runnable
                     }
                     try
                     {
-                        entity.e(nbttagcompound);
+                        entity.#FIELD_ENTITY_2#(nbttagcompound);
                     }
                     catch(Throwable t)
                     {
@@ -354,8 +354,8 @@ public class DerpPlugin extends JavaPlugin implements Listener, Runnable
                         return true;
                     }
                 }
-                m.a(mob); // Derpnote
-                set(getMobData(m), "c", mob); // Derpnote
+                m.#FIELD_MOBSPAWNERABSTRACT_1#(mob); // Derpnote
+                set(getMobData(m), "#FIELD_TILEENTITYMOBSPAWNERDATA_1#", mob); // Derpnote
                 sendMessage(sender, "Mob set.", ChatColor.GREEN);
             }
             else if(c.equals("amount"))
@@ -529,18 +529,18 @@ public class DerpPlugin extends JavaPlugin implements Listener, Runnable
     
     private TileEntityMobSpawnerData getMobData(MobSpawnerAbstract m)
     {
-        TileEntityMobSpawnerData data = m.i(); // Derpnote
+        TileEntityMobSpawnerData data = m.#FIELD_MOBSPAWNERABSTRACT_2#(); // Derpnote
         if(data == null)
         {
             data = new TileEntityMobSpawnerData(m, new NBTTagCompound(), m.getMobName());
-            m.a(data); // Derpnote
+            m.#FIELD_MOBSPAWNER_1#(data); // Derpnote
         }
         return data;
     }
     
     private NBTTagCompound getSpawnData(MobSpawnerAbstract m)
     {
-        return getMobData(m).b; // Derpnote;
+        return getMobData(m).#FIELD_TILEENTITYMOBSPAWNERDATA_2#; // Derpnote;
     }
     
     private void mobList(CommandSender sender)
