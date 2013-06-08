@@ -8,7 +8,7 @@ import java.io.*;
 import java.net.*;
 import java.util.logging.Logger;
 import org.bukkit.ChatColor;
-import org.bukkit.command.CommandSender;
+import org.bukkit.command.*;
 import net.drgnome.nbtlib.*;
 
 public class Util
@@ -36,7 +36,7 @@ public class Util
     
     public static void sendMessage(CommandSender sender, String message, ChatColor prefix)
     {
-        sendMessage(sender, message, "" + prefix);
+        sendMessage(sender, message, prefix.toString());
     }
     
     public static void sendMessage(CommandSender sender, String message, String prefix)
@@ -48,6 +48,11 @@ public class Util
         if(prefix == null)
         {
             prefix = "";
+        }
+        if(sender instanceof ConsoleCommandSender)
+        {
+            sender.sendMessage(prefix + message);
+            return;
         }
         int offset = 0;
         int xpos = 0;

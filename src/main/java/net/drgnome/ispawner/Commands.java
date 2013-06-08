@@ -4,12 +4,13 @@
 
 package net.drgnome.ispawner;
 
+import java.util.*;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
-import net.drgnome.nbtlib.NBT;
+import net.drgnome.nbtlib.*;
 
 public enum Commands
 {
@@ -109,7 +110,7 @@ public enum Commands
             return (args.length >= 1) && args[0].equalsIgnoreCase("set");
         }
     },
-    IMPORT("ispawner.import", true, "import *", "/ispawner import (name) - Import the file (name).txt")
+    IMPORT("ispawner.import", true, "import *", "/ispawner import (name) - Import the file iSpawner/data/(name).txt")
     {
         public void execute(CommandSender sender, String[] args)
         {
@@ -117,9 +118,36 @@ public enum Commands
             {
                 return;
             }
+            if(!sender.hasPermission("ispawner.import.admin") && !sender.hasPermission("ispawner.import." + args[1]))
+            {
+                Util.sendMessage(sender, "You need one of the following permissions:", ChatColor.RED);
+                Util.sendMessage(sender, "ispawner.import.admin", ChatColor.YELLOW);
+                Util.sendMessage(sender, "ispawner.import." + args[1], ChatColor.YELLOW);
+                return;
+            }
+            String[] lines = SpawnPlugin.importData(args[1]);
+            if(lines == null)
+            {
+                Util.sendMessage(sender, "File not found.", ChatColor.RED);
+            }
+            else if(lines.length == 0)
+            {
+                Util.sendMessage(sender, "Importing failed.", ChatColor.RED);
+                return;
+            }
+            HashMap<String, Tag> map = new HashMap<String, Tag>();
+            for(int i = 0; i < lines.length; i++)
+            {
+                if(!lines[i].isEmpty())
+                {
+                    NBTHelper.parse(sender, map, lines[i], i + 1);
+                }
+            }
+            SpawnPlugin.instance().getSession(sender.getName()).setData(map);
+            Util.sendMessage(sender, "Imported.", ChatColor.GREEN);
         }
     },
-    EXPORT_OVERRIDE("ispawner.export.override", true, "export override *", "/ispawner export (name) - Export and override (name).txt")
+    EXPORT_OVERRIDE("ispawner.export.override", true, "export override *", "/ispawner export (name) - Export and override iSpawner/data/(name).txt")
     {
         public void execute(CommandSender sender, String[] args)
         {
@@ -127,9 +155,10 @@ public enum Commands
             {
                 return;
             }
+            NBTHelper.export(sender, args);
         }
     },
-    EXPORT("ispawner.export", true, "export *", "/ispawner export (name) - Export the current spawner to (name).txt")
+    EXPORT("ispawner.export", true, "export *", "/ispawner export (name) - Export the current spawner to iSpawner/data/(name).txt")
     {
         public void execute(CommandSender sender, String[] args)
         {
@@ -137,6 +166,16 @@ public enum Commands
             {
                 return;
             }
+            if(SpawnPlugin.dataFileExists(args[1]))
+            {
+                Util.sendMessage(sender, "This file exists already.", ChatColor.RED);
+                if(sender.hasPermission(Commands.EXPORT_OVERRIDE._permission))
+                {
+                    Util.sendMessage(sender, "Use " + ChatColor.YELLOW + "/ispawner export override ..." + ChatColor.RED + " instead.", ChatColor.RED);
+                }
+                return;
+            }
+            NBTHelper.export(sender, args);
         }
     },
     INFO("ispawner.use", true, "info", "/ispawner info - Print the data of the current spawner")

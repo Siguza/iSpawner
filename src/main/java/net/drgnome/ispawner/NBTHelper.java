@@ -61,84 +61,126 @@ public class NBTHelper
         else if(type == NBT.BYTE)
         {
             byte value;
-            try
+            if(parts[2].equalsIgnoreCase("max"))
             {
-                value = Byte.parseByte(parts[2]);
+                value = Byte.MAX_VALUE;
             }
-            catch(Throwable t)
+            else
             {
-                Util.sendMessage(sender, s("Invalid byte value.", num), ChatColor.RED);
-                return;
+                try
+                {
+                    value = Byte.parseByte(parts[2]);
+                }
+                catch(Throwable t)
+                {
+                    Util.sendMessage(sender, s("Invalid byte value.", num), ChatColor.RED);
+                    return;
+                }
             }
             tag = Tag.newByte(value);
         }
         else if(type == NBT.SHORT)
         {
             short value;
-            try
+            if(parts[2].equalsIgnoreCase("max"))
             {
-                value = Short.parseShort(parts[2]);
+                value = Short.MAX_VALUE;
             }
-            catch(Throwable t)
+            else
             {
-                Util.sendMessage(sender, s("Invalid short value.", num), ChatColor.RED);
-                return;
+                try
+                {
+                    value = Short.parseShort(parts[2]);
+                }
+                catch(Throwable t)
+                {
+                    Util.sendMessage(sender, s("Invalid short value.", num), ChatColor.RED);
+                    return;
+                }
             }
             tag = Tag.newShort(value);
         }
         else if(type == NBT.INT)
         {
             int value;
-            try
+            if(parts[2].equalsIgnoreCase("max"))
             {
-                value = Integer.parseInt(parts[2]);
+                value = Integer.MAX_VALUE;
             }
-            catch(Throwable t)
+            else
             {
-                Util.sendMessage(sender, s("Invalid int value.", num), ChatColor.RED);
-                return;
+                try
+                {
+                    value = Integer.parseInt(parts[2]);
+                }
+                catch(Throwable t)
+                {
+                    Util.sendMessage(sender, s("Invalid int value.", num), ChatColor.RED);
+                    return;
+                }
             }
             tag = Tag.newInt(value);
         }
         else if(type == NBT.LONG)
         {
             long value;
-            try
+            if(parts[2].equalsIgnoreCase("max"))
             {
-                value = Long.parseLong(parts[2]);
+                value = Long.MAX_VALUE;
             }
-            catch(Throwable t)
+            else
             {
-                Util.sendMessage(sender, s("Invalid long value.", num), ChatColor.RED);
-                return;
+                try
+                {
+                    value = Long.parseLong(parts[2]);
+                }
+                catch(Throwable t)
+                {
+                    Util.sendMessage(sender, s("Invalid long value.", num), ChatColor.RED);
+                    return;
+                }
             }
             tag = Tag.newLong(value);
         }
         else if(type == NBT.FLOAT)
         {
             float value;
-            try
+            if(parts[2].equalsIgnoreCase("max"))
             {
-                value = Float.parseFloat(parts[2]);
+                value = Float.MAX_VALUE;
             }
-            catch(Throwable t)
+            else
             {
-                Util.sendMessage(sender, s("Invalid float value.", num), ChatColor.RED);
-                return;
+                try
+                {
+                    value = Float.parseFloat(parts[2]);
+                }
+                catch(Throwable t)
+                {
+                    Util.sendMessage(sender, s("Invalid float value.", num), ChatColor.RED);
+                    return;
+                }
             }
             tag = Tag.newFloat(value);
         }
         else if(type == NBT.DOUBLE)
         {
             double value;
-            try
+            if(parts[2].equalsIgnoreCase("max"))
             {
-                value = Double.parseDouble(parts[2]);
+                value = Double.MAX_VALUE;
             }
-            catch(Throwable t)
+            else
             {
-                Util.sendMessage(sender, s("Invalid double value.", num), ChatColor.RED);
-                return;
+                try
+                {
+                    value = Double.parseDouble(parts[2]);
+                }
+                catch(Throwable t)
+                {
+                    Util.sendMessage(sender, s("Invalid double value.", num), ChatColor.RED);
+                    return;
+                }
             }
             tag = Tag.newDouble(value);
         }
@@ -439,12 +481,29 @@ public class NBTHelper
         }
     }
     
-    public static String[] export(CommandSender sender, Map<String, Tag> map)
+    public static void export(CommandSender sender, String[] args)
+    {
+        String[] lines = export0(sender, SpawnPlugin.instance().getSession(sender.getName()).getData());
+        if(lines == null)
+        {
+            return;
+        }
+        if(SpawnPlugin.exportData(args[1], lines))
+        {
+            Util.sendMessage(sender, "Spawner data has been exported to iSpawner/data/" + args[1] + ".txt.", ChatColor.GREEN);
+        }
+        else
+        {
+            Util.sendMessage(sender, "Exporting failed.", ChatColor.RED);
+        }
+    }
+    
+    private static String[] export0(CommandSender sender, Map<String, Tag> map)
     {
         try
         {
             ArrayList<String> list = new ArrayList<String>();
-            export0(list, Tag.newCompound(map), "");
+            export1(list, Tag.newCompound(map), "");
             return list.toArray(new String[0]);
         }
         catch(Throwable t)
@@ -455,7 +514,7 @@ public class NBTHelper
         }
     }
     
-    private static void export0(List<String> out, Tag tag, String path)
+    private static void export1(List<String> out, Tag tag, String path)
     {
         NBT type = tag.getType();
         if(type == NBT.LIST)
@@ -464,7 +523,7 @@ public class NBTHelper
             List<Tag> list = ((Tag<List<Tag>>)tag).get();
             for(int i = 0; i < list.size(); i++)
             {
-                export0(out, list.get(i), path + (path.isEmpty() ? "" : ".") + i);
+                export1(out, list.get(i), path + (path.isEmpty() ? "" : ".") + i);
             }
         }
         else if(type == NBT.COMPOUND)
@@ -476,7 +535,7 @@ public class NBTHelper
             Map<String, Tag> map = ((Tag<Map<String, Tag>>)tag).get();
             for(Map.Entry<String, Tag> entry : map.entrySet())
             {
-                export0(out, entry.getValue(), path + (path.isEmpty() ? "" : ".") + entry.getKey());
+                export1(out, entry.getValue(), path + (path.isEmpty() ? "" : ".") + entry.getKey());
             }
         }
         else

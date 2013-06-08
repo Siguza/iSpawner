@@ -2,6 +2,7 @@ name: iSpawner
 main: net.drgnome.ispawner.SpawnPlugin
 version: #VERSION#
 author: Siguza
+load: STARTUP
 depend: [NBTLib]
 commands:
   ispawner:

@@ -85,10 +85,10 @@ public class Spawner
                 NBTLib.invokeMinecraft("TileEntityMobSpawner", _tileEntity, "a", new String[]{_classNameNBT}, new Object[]{nbt});
                 throw t1;
             }
-            disable(false);
             NBTLib.putMinecraftField("TileEntity", _tileEntity, "x", x);
             NBTLib.putMinecraftField("TileEntity", _tileEntity, "y", y);
             NBTLib.putMinecraftField("TileEntity", _tileEntity, "z", z);
+            disable(false);
         }
         catch(Throwable t)
         {
@@ -102,7 +102,12 @@ public class Spawner
     {
         try
         {
-            NBTLib.putMinecraftField("MobSpawnerAbstract", NBTLib.fetchDynamicMinecraftField("TileEntityMobSpawner", _tileEntity, _classNameSpawner), "spawnDelay", flag ? Integer.MAX_VALUE : 0);
+            Object spawner = NBTLib.fetchDynamicMinecraftField("TileEntityMobSpawner", _tileEntity, _classNameSpawner);
+            if(!flag)
+            {
+                NBTLib.invokeMinecraft("MobSpawnerAbstract", spawner, "j", new Object[0], new Object[0]);
+            }
+            NBTLib.putMinecraftField("MobSpawnerAbstract", spawner, "spawnDelay", flag ? Integer.MAX_VALUE : 0);
         }
         catch(Throwable t)
         {

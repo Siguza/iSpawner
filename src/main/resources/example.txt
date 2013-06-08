@@ -1,0 +1,149 @@
+// Note: You can add comment lines, but ONLY WHOLE LINES! The "//" has to be at the VERY BEGINNING of the line!
+
+// The following line will always be written when exporting but will never be read again.
+id string MobSpawner
+
+// The following 3 lines will be parsed, but will be ignored when applying because the must be constant. The need to have the correct type though.
+z int 123
+y int 456
+x int 789
+
+// This tag is required as well, but will be set to 0 immediately after applying in order to spawn mobs.
+Delay short 0
+
+// This tag will be overwritten if you use SpawnPotentials, but it still has to exist and be a valid mob name.
+EntityId string Villager
+
+// The next are just some tags. If one of a group (they are separated into 3 groups, see?) is specified, all of that group have to be given.
+// You can read what they do at http://www.minecraftwiki.net/wiki/Chunk_format#Tile_Entity_Format
+
+MinSpawnDelay short 200
+MaxSpawnDelay short 400
+SpawnCount short 5
+
+MaxNearbyEntities short 11
+RequiredPlayerRange short 16
+
+SpawnRange short 4
+
+// We could use the following now, but I'll do it with SpawnPotentials here
+// SpawnData compound
+// SpawnData.
+
+// And now, here comes the action
+SpawnPotentials list
+// This will create .0, .1 and .2 as compounds:
+SpawnPotentials.2 compound
+
+// An invulnerable farmer named "Little Derp" trading 32 jungle logs for 64 cobblestone
+// Spawns in 7 of 10 cases
+SpawnPotentials.0.Type string Villager
+SpawnPotentials.0.Weight int 7
+SpawnPotentials.0.Properties compound
+SpawnPotentials.0.Properties.PersistenceRequired bool true
+SpawnPotentials.0.Properties.ActiveEffects list
+SpawnPotentials.0.Properties.ActiveEffects.0 compound
+SpawnPotentials.0.Properties.ActiveEffects.0.Id byte 11
+SpawnPotentials.0.Properties.ActiveEffects.0.Amplifier byte 5
+SpawnPotentials.0.Properties.ActiveEffects.0.Duration int max
+SpawnPotentials.0.Properties.ActiveEffects.0.Ambient bool false
+SpawnPotentials.0.Properties.CustomName string Little Derp
+SpawnPotentials.0.Properties.CustomNameVisible bool true
+SpawnPotentials.0.Properties.Profession int 0
+SpawnPotentials.0.Properties.Riches int 0
+SpawnPotentials.0.Properties.Offers compound
+SpawnPotentials.0.Properties.Offers.Recipes list
+SpawnPotentials.0.Properties.Offers.Recipes.0 compound
+SpawnPotentials.0.Properties.Offers.Recipes.0.maxUses int max
+SpawnPotentials.0.Properties.Offers.Recipes.0.uses int 0
+SpawnPotentials.0.Properties.Offers.Recipes.0.buy compound
+SpawnPotentials.0.Properties.Offers.Recipes.0.buy.id short 4
+SpawnPotentials.0.Properties.Offers.Recipes.0.buy.Damage short 0
+SpawnPotentials.0.Properties.Offers.Recipes.0.buy.Count byte 64
+SpawnPotentials.0.Properties.Offers.Recipes.0.sell compound
+SpawnPotentials.0.Properties.Offers.Recipes.0.sell.id short 17
+SpawnPotentials.0.Properties.Offers.Recipes.0.sell.Damage short 3
+SpawnPotentials.0.Properties.Offers.Recipes.0.sell.Count byte 32
+
+// An invulnerable librarian with a speed boost named "Medium Derp" trading one flint for one gravel
+// Spawns in 2 of 10 cases
+SpawnPotentials.1.Type string Villager
+SpawnPotentials.1.Weight int 2
+SpawnPotentials.1.Properties compound
+SpawnPotentials.1.Properties.PersistenceRequired bool true
+SpawnPotentials.1.Properties.ActiveEffects list
+SpawnPotentials.1.Properties.ActiveEffects.1 compound
+SpawnPotentials.1.Properties.ActiveEffects.0.Id byte 11
+SpawnPotentials.1.Properties.ActiveEffects.0.Amplifier byte 5
+SpawnPotentials.1.Properties.ActiveEffects.0.Duration int max
+SpawnPotentials.1.Properties.ActiveEffects.0.Ambient bool false
+SpawnPotentials.1.Properties.ActiveEffects.1.Id byte 1
+SpawnPotentials.1.Properties.ActiveEffects.1.Amplifier byte 2
+SpawnPotentials.1.Properties.ActiveEffects.1.Duration int max
+SpawnPotentials.1.Properties.ActiveEffects.1.Ambient bool false
+SpawnPotentials.1.Properties.CustomName string Medium Derp
+SpawnPotentials.1.Properties.CustomNameVisible bool true
+SpawnPotentials.1.Properties.Profession int 1
+SpawnPotentials.1.Properties.Riches int 0
+SpawnPotentials.1.Properties.Offers compound
+SpawnPotentials.1.Properties.Offers.Recipes list
+SpawnPotentials.1.Properties.Offers.Recipes.0 compound
+SpawnPotentials.1.Properties.Offers.Recipes.0.maxUses int max
+SpawnPotentials.1.Properties.Offers.Recipes.0.uses int 0
+SpawnPotentials.1.Properties.Offers.Recipes.0.buy compound
+SpawnPotentials.1.Properties.Offers.Recipes.0.buy.id short 318
+SpawnPotentials.1.Properties.Offers.Recipes.0.buy.Damage short 0
+SpawnPotentials.1.Properties.Offers.Recipes.0.buy.Count byte 1
+SpawnPotentials.1.Properties.Offers.Recipes.0.sell compound
+SpawnPotentials.1.Properties.Offers.Recipes.0.sell.id short 13
+SpawnPotentials.1.Properties.Offers.Recipes.0.sell.Damage short 0
+SpawnPotentials.1.Properties.Offers.Recipes.0.sell.Count byte 1
+
+// An invulnerable priest with a speed and a big jump boost named "Max Derp" trading a not destroyable diamond sword named "Lord of Meowington" for a saddle and a nether star
+// Spawns in 1 of 10 cases
+SpawnPotentials.2.Type string Villager
+SpawnPotentials.2.Weight int 1
+SpawnPotentials.2.Properties compound
+SpawnPotentials.2.Properties.PersistenceRequired bool true
+SpawnPotentials.2.Properties.ActiveEffects list
+SpawnPotentials.2.Properties.ActiveEffects.2 compound
+SpawnPotentials.2.Properties.ActiveEffects.0.Id byte 11
+SpawnPotentials.2.Properties.ActiveEffects.0.Amplifier byte 5
+SpawnPotentials.2.Properties.ActiveEffects.0.Duration int max
+SpawnPotentials.2.Properties.ActiveEffects.0.Ambient bool false
+SpawnPotentials.2.Properties.ActiveEffects.1.Id byte 1
+SpawnPotentials.2.Properties.ActiveEffects.1.Amplifier byte 2
+SpawnPotentials.2.Properties.ActiveEffects.1.Duration int max
+SpawnPotentials.2.Properties.ActiveEffects.1.Ambient bool false
+SpawnPotentials.2.Properties.ActiveEffects.2.Id byte 8
+SpawnPotentials.2.Properties.ActiveEffects.2.Amplifier byte 10
+SpawnPotentials.2.Properties.ActiveEffects.2.Duration int max
+SpawnPotentials.2.Properties.ActiveEffects.2.Ambient bool false
+SpawnPotentials.2.Properties.CustomName string Max Derp
+SpawnPotentials.2.Properties.CustomNameVisible bool true
+SpawnPotentials.2.Properties.Profession int 2
+SpawnPotentials.2.Properties.Riches int 0
+SpawnPotentials.2.Properties.Offers compound
+SpawnPotentials.2.Properties.Offers.Recipes list
+SpawnPotentials.2.Properties.Offers.Recipes.0 compound
+SpawnPotentials.2.Properties.Offers.Recipes.0.maxUses int max
+SpawnPotentials.2.Properties.Offers.Recipes.0.uses int 0
+SpawnPotentials.2.Properties.Offers.Recipes.0.buy compound
+SpawnPotentials.2.Properties.Offers.Recipes.0.buy.id short 329
+SpawnPotentials.2.Properties.Offers.Recipes.0.buy.Damage short 0
+SpawnPotentials.2.Properties.Offers.Recipes.0.buy.Count byte 1
+SpawnPotentials.2.Properties.Offers.Recipes.0.buyB compound
+SpawnPotentials.2.Properties.Offers.Recipes.0.buyB.id short 399
+SpawnPotentials.2.Properties.Offers.Recipes.0.buyB.Damage short 0
+SpawnPotentials.2.Properties.Offers.Recipes.0.buyB.Count byte 1
+SpawnPotentials.2.Properties.Offers.Recipes.0.sell compound
+SpawnPotentials.2.Properties.Offers.Recipes.0.sell.id short 276
+SpawnPotentials.2.Properties.Offers.Recipes.0.sell.Damage short 0
+SpawnPotentials.2.Properties.Offers.Recipes.0.sell.Count byte 1
+SpawnPotentials.2.Properties.Offers.Recipes.0.sell.tag compound
+SpawnPotentials.2.Properties.Offers.Recipes.0.sell.tag.display compound
+SpawnPotentials.2.Properties.Offers.Recipes.0.sell.tag.display.Name string Lord of Meowington
+SpawnPotentials.2.Properties.Offers.Recipes.0.sell.tag.ench list
+SpawnPotentials.2.Properties.Offers.Recipes.0.sell.tag.ench.0 compound
+SpawnPotentials.2.Properties.Offers.Recipes.0.sell.tag.ench.0.id short 34
+SpawnPotentials.2.Properties.Offers.Recipes.0.sell.tag.ench.0.lvl short max

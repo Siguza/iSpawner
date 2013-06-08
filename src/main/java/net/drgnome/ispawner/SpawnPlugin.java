@@ -4,6 +4,7 @@
 
 package net.drgnome.ispawner;
 
+import java.io.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.ChatColor;
@@ -59,12 +60,95 @@ public class SpawnPlugin extends JavaPlugin implements Runnable, Listener
     {
         super.reloadConfig();
         Config.reload();
+        try
+        {
+            File parent = new File(SpawnPlugin.instance().getDataFolder(), "data");
+            if(!parent.exists())
+            {
+                parent.mkdirs();
+            }
+            byte[] b = new byte[1024];
+            InputStream in = getResource("example.txt");
+            OutputStream out = new FileOutputStream(new File(parent, "example.txt"));
+            int bytesRead;
+            while((bytesRead = in.read(b)) != -1)
+            {
+                out.write(b, 0, bytesRead);
+            }
+        }
+        catch(Throwable t)
+        {
+            t.printStackTrace();
+        }
     }
     
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args)
     {
         Commands.handle(sender, args);
         return true;
+    }
+    
+    public static boolean dataFileExists(String name)
+    {
+        return new File(new File(SpawnPlugin.instance().getDataFolder(), "data"), name + ".txt").exists();
+    }
+    
+    public static String[] importData(String name)
+    {
+        try
+        {
+            ArrayList<String> list = new ArrayList<String>();
+            String line;
+            BufferedReader file = new BufferedReader(new FileReader(new File(new File(SpawnPlugin.instance().getDataFolder(), "data"), name + ".txt")));
+            while((line = file.readLine()) != null)
+            {
+                line = line.replace("\t", "    ").trim();
+                if(line.startsWith("//"))
+                {
+                    list.add("");
+                }
+                else
+                {
+                    list.add(line);
+                }
+            }
+            file.close();
+            return list.toArray(new String[0]);
+        }
+        catch(FileNotFoundException e)
+        {
+            return null;
+        }
+        catch(Throwable t)
+        {
+            t.printStackTrace();
+            return new String[0];
+        }
+    }
+    
+    public static boolean exportData(String name, String[] data)
+    {
+        try
+        {
+            File parent = new File(SpawnPlugin.instance().getDataFolder(), "data");
+            if(!parent.exists())
+            {
+                parent.mkdirs();
+            }
+            BufferedWriter writer = new BufferedWriter(new FileWriter(new File(parent, name + ".txt")));
+            for(String line : data)
+            {
+                writer.write(line);
+                writer.newLine();
+            }
+            writer.close();
+            return true;
+        }
+        catch(Throwable t)
+        {
+            t.printStackTrace();
+            return false;
+        }
     }
     
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
