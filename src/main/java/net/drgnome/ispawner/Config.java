@@ -1,42 +1,37 @@
 // Bukkit Plugin "iSpawner" by Siguza
-// This software is distributed under the following license:
+// The license under which this software is released can be accessed at:
 // http://creativecommons.org/licenses/by-nc-sa/3.0/
 
 package net.drgnome.ispawner;
 
-import org.bukkit.configuration.file.*;
+import org.bukkit.configuration.file.FileConfiguration;
 
-import static net.drgnome.ispawner.Util.*;
-
-// Thought for static import
 public class Config
-{    
-    private static FileConfiguration config;
+{
+    private static FileConfiguration _config;
     
-    // Because reloadConfig is already used
-    public static void reloadConf(FileConfiguration file)
+    public static void reload()
     {
-        config = file;
+        _config = SpawnPlugin.instance().getConfig();
         setDefs();
+        SpawnPlugin.instance().saveConfig();
     }
     
-    // Set all default values
     private static void setDefs()
     {
         setDef("check-update", "true");
     }
     
-    // Set a default value
-    private static void setDef(String path, Object value)
+    private static void setDef(String key, Object value)
     {
-        if(!config.isSet(path))
+        if(!_config.isSet(key))
         {
-            config.set(path, value);
+            _config.set(key, value);
         }
     }
     
-    public static String getConfigString(String string)
+    public static boolean bool(String key)
     {
-        return config.getString(string);
+        return _config.getString(key).equalsIgnoreCase("true");
     }
 }

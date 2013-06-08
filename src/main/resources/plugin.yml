@@ -1,13 +1,39 @@
 name: iSpawner
-main: net.drgnome.ispawner.DerpPlugin
+main: net.drgnome.ispawner.SpawnPlugin
 version: #VERSION#
 author: Siguza
+depend: [NBTLib]
 commands:
-    edit:
-        description: iSpawner
-        permissions: ispawner.use
-        usage: /edit
+  ispawner:
+    permissions: ispawner.use
+    aliases: [isp]
+    usage: "/ispawner"
 permissions:
-    ispawner.use:
-        default: op
-        description: There is just one permission for iSpawner
+  ispawner.admin:
+    default: op
+    description: iSpawner admin permission
+    children:
+      ispawner.import.admin: true
+      ispawner.export.admin: true
+      ispawner.use.admin: true
+      ispawner.update: true
+  ispawner.import.admin:
+    description: Full importing permission
+    children:
+      ispawner.import: true
+  ispawner.import:
+    description: Basic importing permission
+  ispawner.export.admin:
+    description: Override exporting permission
+    children:
+      ispawner.export: true
+  ispawner.export:
+    description: Exporting permission
+  ispawner.use.admin:
+    description: Allow editing via command
+    children:
+      ispawner.use: true
+  ispawner.use:
+    description: Basic iSpawner permission
+  ispawner.update:
+    description: Receive update notifications
