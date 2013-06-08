@@ -147,7 +147,7 @@ public enum Commands
             Util.sendMessage(sender, "Imported.", ChatColor.GREEN);
         }
     },
-    EXPORT_OVERRIDE("ispawner.export.override", true, "export override *", "/ispawner export (name) - Export and override iSpawner/data/(name).txt")
+    EXPORT_OVERRIDE("ispawner.export.admin", true, "export override *", "/ispawner export (name) - Export and override iSpawner/data/(name).txt")
     {
         public void execute(CommandSender sender, String[] args)
         {
